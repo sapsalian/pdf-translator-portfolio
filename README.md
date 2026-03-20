@@ -36,10 +36,14 @@ This makes PDF translation fundamentally different from translating plain text. 
 PDF Input
     │
     ▼
-[Stage 1] Document Analysis
+[Stage 1] Document Analysis & Context Building
     - Extract coordinate-based text spans per page via PyMuPDF
     - Reconstruct paragraphs by inferring reading flow from positions
-    - Pre-extract glossary via GPT for domain term consistency
+    - Chunk document (7 pages at a time) and send to GPT to extract:
+        · A 3-sentence summary per page (used as translation context)
+        · A domain glossary of terms that could be translated inconsistently
+    - Merge per-chunk glossaries via frequency voting
+      (if a term appears with different translations across chunks, the most common wins)
     │
     ▼
 [Stage 2] Preprocessing
@@ -51,8 +55,12 @@ PDF Input
     - Clean artifacts from PDF parsing (hyphenation, encoding noise)
     │
     ▼
-[Stage 3] Translation
-    - Translate each block with GPT, supplying glossary + page context
+[Stage 3] Context-Aware Translation
+    - Group blocks into batches (up to 2,000 chars) for intra-page context
+    - Each batch is translated in a single GPT call with:
+        · term_dict  — glossary as absolute authority for domain terms
+        · summary    — page-level summary so GPT understands surrounding content
+        · blocks     — the batch itself, so blocks influence each other
     - Preserve inline style markers (bold, italic, font size shifts)
     - Maintain superscript / subscript positions through translation
     │
@@ -88,8 +96,12 @@ Fixed-layout PDFs store text as raw coordinate spans — there is no concept of 
 ### 2. Preserving inline styles across translation
 Text blocks often contain mixed styles within a single sentence (e.g., a bold term mid-paragraph, a superscript citation). Per-character style metadata is extracted before translation and reapplied after, compensating for the length differences that translation introduces.
 
-### 3. Consistent terminology across pages
-Technical documents use domain-specific terms with multiple valid translations depending on context. A pre-translation glossary extraction step (via GPT) establishes canonical translations for key terms before the page-by-page pass, ensuring consistency across the entire document.
+### 3. Maintaining translation context across blocks and pages
+Three layers of context are maintained throughout translation:
+
+- **Glossary (document-level)**: Before any translation begins, the full document is chunked and sent to GPT to extract domain-specific terms. Each chunk produces its own glossary, and conflicts are resolved by frequency voting — the most common translation across chunks wins. This glossary is passed as absolute authority to every translation call.
+- **Page summary (page-level)**: The same pre-pass produces a 3-sentence summary per page. Each translation batch receives the summary of its page, so GPT understands the surrounding topic even without seeing adjacent pages.
+- **Block grouping (intra-page)**: Blocks on the same page are batched together (up to 2,000 characters per call). Translating multiple blocks in a single request lets GPT maintain coherence between adjacent sentences and paragraphs within a page.
 
 ### 4. Korean font rendering on English-only PDFs
 Most English PDFs embed only Latin fonts. The tool identifies the closest system font family to the original and substitutes a Korean-capable equivalent, preserving visual tone while enabling CJK rendering.
