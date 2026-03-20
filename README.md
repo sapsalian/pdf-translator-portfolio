@@ -8,7 +8,7 @@ An AI-powered PDF translation tool that parses coordinate-scattered text fragmen
 
 ## Demo
 
-<video src="docs/videos/demo.mov" controls width="100%"></video>
+<video src="https://github.com/user-attachments/assets/2a3f8c0a-e26c-4280-b90c-1ef846e55b3c" controls width="100%"></video>
 
 ### Before / After
 
