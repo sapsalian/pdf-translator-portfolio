@@ -8,8 +8,6 @@ An AI-powered PDF translation tool that parses coordinate-scattered text fragmen
 
 ## Demo
 
-<video src="https://github.com/user-attachments/assets/2a3f8c0a-e26c-4280-b90c-1ef846e55b3c" controls width="100%"></video>
-
 ### Before / After
 
 *YOLOv9 paper (arXiv:2402.13616) — first page*
@@ -17,6 +15,10 @@ An AI-powered PDF translation tool that parses coordinate-scattered text fragmen
 | Original (English) | Translated (Korean) |
 |---|---|
 | ![Original](docs/images/original-page1.png) | ![Translated](docs/images/translated-page1.png) |
+
+### Demo Video
+
+<video src="https://github.com/user-attachments/assets/2a3f8c0a-e26c-4280-b90c-1ef846e55b3c" controls width="100%"></video>
 
 ---
 
